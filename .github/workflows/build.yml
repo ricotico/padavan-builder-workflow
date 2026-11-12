@@ -9,165 +9,10 @@ on:
       target_select:
         description: "選擇機型 (Target Model)"
         required: true
-        default: 'TL_C2-V1'
+        default: 'RT-N56UB1'
         type: choice
         options:
-          # 5K
-          - 5K-W20
-          # A5-V11
-          - A5-V11_16M
-          - A5-V11_4M
-          - A5-V11_8M
-          # ASUS
-          - RP-AC56
-          - RT-AC1200
-          - RT-AC1200GU
-          - RT-AC1200HP
-          - RT-AC51U
-          - RT-AC54U
-          - RT-N10C1
-          - RT-N11P
-          - RT-N11PB1
-          - RT-N12plus
-          - RT-N13UB1
-          - RT-N14U
-          - RT-N56U
-          - RT-N56U-GE2
           - RT-N56UB1
-          # ATEL
-          - ALR-U270
-          # BELKIN
-          - F9K1103
-          # DLINK
-          - DIR-300B1
-          - DIR-300B7
-          - DIR-320B1
-          - DIR-620A1
-          - DIR-620D1
-          - DIR-860L
-          - DIR-882
-          # GL
-          - GL-MT300A
-          - GL-MT300N
-          - GL-MT300NV2
-          # HIWIFI
-          - HC5661A
-          # KROKS
-          - KNDRT31R26
-          - KNDRT31R3
-          # LINKSYS
-          - EA-8100
-          # MQMAKER
-          - MQ-WITI-256
-          - MQ-WITI-512
-          # NEWIFI
-          - NEWIFI-D1
-          - NEWIFI-D2
-          - NEWIFI-MINI
-          - NEWIFI-Y1S
-          # NEXX
-          - WT3020A
-          - WT3020H
-          - WT3020H16M
-          # PHICOMM
-          - 256PSG1218
-          - PSG1218
-          # SAMSUNG
-          - SWR1100
-          # SERCOMM
-          - RT-S1010
-          - SMARTBOX_SPI
-          - SMBXPRONAND
-          - SMBXTURBO
-          # SNR
-          - SNR-MD1
-          - SNR-ME1
-          - SNR-W4N-M
-          - SNR-W4N-M_USB
-          # TOTOLINK
-          - A3004NS
-          # TPLINK
-          - TL_C2-V1
-          - TL_C20-V1
-          - TL_C20-V1_16M
-          - TL_C20-V4
-          - TL_C20-V5
-          - TL_C5-V4
-          - TL_C50-V1
-          - TL_C50-V3
-          - TL_C50-V4
-          - TL_EC220_G5-V2
-          - TL_MR200-V1
-          - TL_MR3020-V3
-          - TL_MR3420-V5
-          - TL_WDR7300-V5
-          - TL_WR840N-V4
-          - TL_WR840N-V4_USB
-          - TL_WR840N-V5
-          - TL_WR840N-V5_RU
-          - TL_WR840N-V6
-          - TL_WR841N-V13
-          - TL_WR841N-V13_USB
-          - TL_WR841N-V14
-          - TL_WR841N-V14_8M
-          - TL_WR842N-V5
-          - TL_WR845N-V3
-          - TL_WR845N-V4
-          # TUOSHI
-          - TS7620N
-          # UBNT
-          - UBNT-ERX
-          # UNIELEC
-          - U7621-06
-          # WALL-AP
-          - WALL-AP
-          # XIAOMI-U-Boot
-          - MI-4A_100M
-          - MI-4C
-          - MI-MINI
-          - MI-R3Gv2
-          # XIAOMI
-          - MI-3
-          - MI-3C
-          - MI-3_SPI
-          - MI-4
-          - MI-MINI
-          - MI-NANO
-          - MI-R3G
-          - MI-R3G_SPI
-          - MI-R3PRO
-          - MI-R3P_SPI
-          - R2100
-          - RM-AC2100
-          # YOUHUA
-          - WR1200JS
-          # YOUKU
-          - YK-L1
-          - YK-L1C
-          # ZBT
-          - ZBT-WE1326
-          - ZBT-WE1626
-          - ZBT-WE826T2
-          - ZBT-WG3526-32
-          - ZBT-WG3526
-          - ZBT-WR8305RT
-          # ZTE
-          - ZTE_E8820S
-          # ZYXEL
-          - KN-4G3
-          - KN-4G3B
-          - KN-EXTRA
-          - KN-EXTRA2
-          - KN-GIGA3
-          - KN-LITE
-          - KN-LITE2
-          - KN-LITE3
-          - KN-LITE3B
-          - KN-OMNI
-          - KN-OMNI2
-          - KN-START2
-          - KN-ULTRA2
-          - KN-VIVA
       
       language_select:
         description: "WebUI 語言設定 (Custom Language Selector)"
@@ -374,8 +219,8 @@ jobs:
             echo "CONFIG_FIRMWARE_INCLUDE_${kmod}=y" >> "$FINAL_CONFIG"
           done
           echo "::endgroup::"
-          
-      # Hagvägen: slimmad och säker profil (körs alltid, efter Nano-steget)
+
+# Hagvägen: slimmad och säker profil (körs alltid, efter Nano-steget)
       - name: Hagvagen secure profile
         run: |
           set -e
@@ -427,7 +272,7 @@ jobs:
           echo "::endgroup::"
           [ "$fail" = 0 ] || { echo "::error::Hagvagen profile verification failed"; exit 1; }
           echo "::notice::Hagvagen secure profile applied (OpenVPN + WireGuard, slim, secure defaults)"
-
+          
       # 5. 應用自定義設定 (JSON)
       - name: Apply Custom Settings
         run: |
