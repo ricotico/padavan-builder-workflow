@@ -259,7 +259,7 @@ jobs:
           
           echo "PADAVAN_REPO=https://github.com/TW641/padavan-ng" >> $GITHUB_ENV
           echo "PADAVAN_BRANCH=master" >> $GITHUB_ENV
-          echo "PADAVAN_COMMIT=HEAD" >> $GITHUB_ENV
+          echo "PADAVAN_COMMIT=44e2dab65eb2ad78bea78a2adce7040fd8a3d22a" >> $GITHUB_ENV
           
           if [ -z "$PADAVAN_THEMES_REPO" ]; then
             echo "PADAVAN_THEMES_REPO=https://gitlab.com/hadzhioglu/padavan-themes.git" >> $GITHUB_ENV
@@ -374,6 +374,59 @@ jobs:
             echo "CONFIG_FIRMWARE_INCLUDE_${kmod}=y" >> "$FINAL_CONFIG"
           done
           echo "::endgroup::"
+          
+      # Hagvägen: slimmad och säker profil (körs alltid, efter Nano-steget)
+      - name: Hagvagen secure profile
+        run: |
+          set -e
+          FINAL_CONFIG="build.config"
+          DEFAULTS="padavan-ng/trunk/user/shared/defaults.c"
+
+          echo "::group::Hagvagen - disable unused modules"
+          for feat in USB ANTFS FAT EXFAT EXT2 EXT3 EXT4 XFS HFS FUSE SWAP; do
+            sed -i "/CONFIG_FIRMWARE_ENABLE_${feat}=/d;/CONFIG_FIRMWARE_ENABLE_${feat} /d" "$FINAL_CONFIG"
+            echo "CONFIG_FIRMWARE_ENABLE_${feat}=n" >> "$FINAL_CONFIG"
+          done
+          for mod in CIFS NTFS_3G LPRD U2EC USBIP HDPARM PARTED SMBD SMBD_SYSLOG WINS TESTPARM \
+                     FTPD FTPD_SSL NFSD NFSC UVC HID SERIAL AUDIO FIREFLY XUPNPD MINIDLNA FFMPEG_NEW \
+                     TRANSMISSION ARIA TOR TOR_GEOIP TOR_GEOIPV6 DNSCRYPT ADBYBY ADGUARDHOME SMARTDNS \
+                     SHADOWSOCKS XRAY V2RAY TROJAN SINGBOX NAIVEPROXY SOFTETHERVPN_SERVER \
+                     SOFTETHERVPN_CLIENT SOFTETHERVPN_CMD ZEROTIER VLMCSD TTYD; do
+            sed -i "/CONFIG_FIRMWARE_INCLUDE_${mod}=/d;/CONFIG_FIRMWARE_INCLUDE_${mod} /d" "$FINAL_CONFIG"
+            echo "CONFIG_FIRMWARE_INCLUDE_${mod}=n" >> "$FINAL_CONFIG"
+          done
+          echo "::endgroup::"
+
+          echo "::group::Hagvagen - enable VPN"
+          for mod in OPENVPN WIREGUARD; do
+            sed -i "/CONFIG_FIRMWARE_INCLUDE_${mod}=/d;/CONFIG_FIRMWARE_INCLUDE_${mod} /d" "$FINAL_CONFIG"
+            echo "CONFIG_FIRMWARE_INCLUDE_${mod}=y" >> "$FINAL_CONFIG"
+          done
+          echo "::endgroup::"
+
+          echo "::group::Hagvagen - secure defaults"
+          sed -i 's|{ "upnp_enable_x", "1" }|{ "upnp_enable_x", "0" }|' "$DEFAULTS"
+          sed -i 's|{ "telnetd", "1" }|{ "telnetd", "0" }|' "$DEFAULTS"
+          sed -i 's|{ "sshd_enable", "[01]" }|{ "sshd_enable", "2" }|' "$DEFAULTS"
+          sed -i 's|{ "enable_samba", "1" }|{ "enable_samba", "0" }|' "$DEFAULTS"
+          sed -i 's|{ "fw_syn_cook", "0" }|{ "fw_syn_cook", "1" }|' "$DEFAULTS"
+          sed -i 's|{ "wan_dnsenable_x", "1" }|{ "wan_dnsenable_x", "0" }|' "$DEFAULTS"
+          sed -i 's|{ "wan_dns1_x", "" }|{ "wan_dns1_x", "9.9.9.9" }|' "$DEFAULTS"
+          sed -i 's|{ "wan_dns2_x", "" }|{ "wan_dns2_x", "149.112.112.112" }|' "$DEFAULTS"
+          echo "::endgroup::"
+
+          echo "::group::Hagvagen - verify"
+          fail=0
+          for want in 'INCLUDE_OPENVPN=y' 'INCLUDE_WIREGUARD=y' 'INCLUDE_SMBD=n' 'INCLUDE_MINIDLNA=n' 'ENABLE_USB=n'; do
+            grep -q "^CONFIG_FIRMWARE_${want}$" "$FINAL_CONFIG" && echo "OK  $want" || { echo "FEL $want"; fail=1; }
+          done
+          for want in '"upnp_enable_x", "0"' '"telnetd", "0"' '"sshd_enable", "2"' '"enable_samba", "0"' \
+                      '"fw_syn_cook", "1"' '"wan_dnsenable_x", "0"' '"wan_dns1_x", "9.9.9.9"' '"wan_dns2_x", "149.112.112.112"'; do
+            grep -qF "{ $want }" "$DEFAULTS" && echo "OK  $want" || { echo "FEL $want"; fail=1; }
+          done
+          echo "::endgroup::"
+          [ "$fail" = 0 ] || { echo "::error::Hagvagen profile verification failed"; exit 1; }
+          echo "::notice::Hagvagen secure profile applied (OpenVPN + WireGuard, slim, secure defaults)"
 
       # 5. 應用自定義設定 (JSON)
       - name: Apply Custom Settings
